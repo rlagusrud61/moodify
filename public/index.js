@@ -4,114 +4,45 @@ const changeLightIntensityChar = '9de2dcc7-f9e4-4372-a559-05c41e37914e';
 const alarmSettingChar = 'bb2d7591-b7e4-4fc3-ae11-66a1cb637153';
 const changeColourChar = '92915619-d075-499e-a072-0da6f7325d37';
 
-/* Pills */
+function onButtonClick() {
+    let filters = [];
 
-document.getElementById('color').addEventListener('click', (e) => {
-    document.body.classList.remove('color', 'customize');
-    document.body.classList.add('color');
-});
-
-document.getElementById('customize').addEventListener('click', (e) => {
-    document.body.classList.remove('color', 'customize');
-    document.body.classList.add('customize');
-});
-
-/* Inject styles in the editor */
-
-var style = document.getElementById('style');
-
-function injectStyle(c) {
-    if (c) {
-        style.innerHTML =
-            "#bulb {\n" +
-            "    fill: " + c + ";\n" +
-            "}";
+    let filterService = document.querySelector('#service').value;
+    if (filterService.startsWith('0x')) {
+        filterService = parseInt(filterService);
     }
-    else {
-        style.innerHTML = '';
-    }
-}
-
-/* Color swatches */
-
-var controls = document.getElementById('colorView');
-
-controls.addEventListener('mousedown', handleMouseEvent);
-controls.addEventListener('touchstart', handleMouseEvent);
-
-function handleMouseEvent(event) {
-    if (event.target.tagName !== 'BUTTON') {
-        return;
+    if (filterService) {
+        filters.push({services: [filterService]});
     }
 
-    var c = event.target.dataset.value;
-    injectStyle(c);
-
-    event.preventDefault();
-}
-
-
-
-
-/* Watch CSS animations */
-
-var lastColor = '#cccccc';
-
-var bulb = document.getElementById('bulb');
-
-function watcher() {
-    color = normalizeColor(window.getComputedStyle(bulb).fill);
-
-    if (color !== lastColor) {
-        lastColor = color;
-        BluetoothBulb.color = color;
+    let filterName = document.querySelector('#name').value;
+    if (filterName) {
+        filters.push({name: filterName});
     }
-}
 
-window.setInterval(watcher, 100);
-
-/* Connect to device */
-
-document.getElementById('connect')
-    .addEventListener('click', () => {
-        BluetoothBulb.connect()
-            .then(() => {
-                document.body.classList.add('connected');
-                injectStyle(BluetoothBulb.color);
-
-                BluetoothBulb.addEventListener('disconnected', () => {
-                    document.body.classList.remove('connected');
-                    injectStyle();
-                });
-            });
-    });
-
-document.getElementById('emulate')
-    .addEventListener('click', () => {
-        emulateState = true;
-        document.body.classList.add('connected');
-
-        injectStyle();
-    });
-
-/* Color format conversion */
-
-function normalizeColor(rgb) {
-    if (rgb.search("rgb") === -1) {
-        return rgb;
+    let filterNamePrefix = document.querySelector('#namePrefix').value;
+    if (filterNamePrefix) {
+        filters.push({namePrefix: filterNamePrefix});
     }
-    else if (rgb === 'rgba(0, 0, 0, 0)') {
-        return 'transparent';
-    }
-    else {
-        rgb = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+))?\)$/);
 
-        function hex(x) {
-            return ("0" + parseInt(x).toString(16)).slice(-2);
-        }
-
-        return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+    let options = {};
+    if (document.querySelector('#allDevices').checked) {
+        options.acceptAllDevices = true;
+    } else {
+        options.filters = filters;
     }
+
+    log('Requesting Bluetooth Device...');
+    log('with ' + JSON.stringify(options));
+    navigator.bluetooth.requestDevice(options)
+        .then(device => {
+            log('> Name:             ' + device.name);
+            log('> Id:               ' + device.id);
+            log('> Connected:        ' + device.gatt.connected);
+        })
+        .catch(error => {
+            log('Argh! ' + error);
+        });
 }
 
 // let device, alarmChar, lightInstensityChar, colourChooser;
