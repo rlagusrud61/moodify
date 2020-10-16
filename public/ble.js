@@ -40,7 +40,7 @@ async function getDevice() {
 async function getServer() {
     try {
         if (!myDevice) {
-            await getDevice()
+            myDevice = await getDevice()
         }
         myServer = await myDevice.gatt.connect();
     } catch (error) {
@@ -50,7 +50,7 @@ async function getServer() {
 async function getService() {
     try {
         if (!myServer) {
-            await getServer()
+            myServer = await getServer()
         }
         myService = await myServer.getPrimaryService(myServiceUUID);
     } catch (error) {
@@ -60,9 +60,9 @@ async function getService() {
 async function getChars() {
     try {
         if (!myService) {
-            await getService()
+            myService = await getService()
         }
-        myChars = myServer.getCharacteristics()
+        myChars = await myServer.getCharacteristics()
     } catch (error) {
         console.log('Argh! ' + error)
     }
