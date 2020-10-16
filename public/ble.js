@@ -62,7 +62,7 @@ async function getChars() {
         if (!myService) {
             myService = await getService()
         }
-        myChars = await myServer.getCharacteristics()
+        myChars = await myService.getCharacteristics();
     } catch (error) {
         console.log('Argh! ' + error)
     }
