@@ -41,9 +41,9 @@ async function getDevice() {
 async function getServer() {
     try {
         if (myDevice === undefined) {
-            myDevice = await getDevice()
+            await getDevice()
         }
-        await myDevice.gatt.connect();
+        myServer = await myDevice.gatt.connect();
     } catch (error) {
         console.log('Argh! ' + error)
     }
@@ -53,7 +53,7 @@ async function getService() {
         if (myServer === undefined) {
             await getServer()
         }
-        await myServer.getPrimaryService(myServiceUUID);
+        myService = await myServer.getPrimaryService(myServiceUUID);
     } catch (error) {
         console.log('Argh! ' + error)
     }
@@ -63,7 +63,7 @@ async function getChars() {
         if (myService === undefined) {
             await getService()
         }
-        await myService.getCharacteristics();
+        myChars = await myService.getCharacteristics();
     } catch (error) {
         console.log('Argh! ' + error)
     }
@@ -75,7 +75,7 @@ async function getChar() {
         }
         myChars.forEach(function (char) {
             if (myCharacteristicUUID === char.uuid) {
-                myCharacteristicUUID = char
+                myCharacteristic = char
             }
         });
         myCharacteristic.startNotifications().then(subscribeToChanges)
@@ -90,7 +90,7 @@ async function establishConnection() {
     }
     await getServer();
     await getService();
-    await  getChars();
+    await getChars();
     await getChar();
     console.log(myDevice)
     console.log(myServer)
