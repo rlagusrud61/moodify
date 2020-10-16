@@ -30,8 +30,6 @@ function getDevice() {
             console.log('> Name:             ' + device.name);
             console.log('> Id:               ' + device.id);
             console.log('> Connected:        ' + device.gatt.connected);
-        })
-        .then(function(device) {
             // save the device returned so you can disconnect later:
             myDevice = device;
             console.log(device);
