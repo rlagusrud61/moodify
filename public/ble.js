@@ -33,56 +33,71 @@ async function getDevice() {
         console.log('> Name:             ' + myDevice.name);
         console.log('> Id:               ' + myDevice.id);
         console.log('> Connected:        ' + myDevice.gatt.connected);
+        await establishConnection()
     } catch(error)  {
         console.log('Argh! ' + error);
     }
 }
 async function getServer() {
     try {
-        if (!myDevice) {
+        if (myDevice === undefined) {
             myDevice = await getDevice()
         }
-        myServer = await myDevice.gatt.connect();
+        await myDevice.gatt.connect();
     } catch (error) {
         console.log('Argh! ' + error)
     }
 }
 async function getService() {
     try {
-        if (!myServer) {
-            myServer = await getServer()
+        if (myServer === undefined) {
+            await getServer()
         }
-        myService = await myServer.getPrimaryService(myServiceUUID);
+        await myServer.getPrimaryService(myServiceUUID);
     } catch (error) {
         console.log('Argh! ' + error)
     }
 }
 async function getChars() {
     try {
-        if (!myService) {
-            myService = await getService()
+        if (myService === undefined) {
+            await getService()
         }
-        myChars = await myService.getCharacteristics();
+        await myService.getCharacteristics();
     } catch (error) {
         console.log('Argh! ' + error)
     }
 }
 async function getChar() {
     try {
-        if (!myChars) {
-            myChars = await getChars()
+        if (myChars === undefined) {
+            await getChars()
         }
-        for (let chars in myChars) {
-            if (chars.uuid === myCharacteristicUUID) {
-                myCharacteristic = chars
+        myChars.forEach(function (char) {
+            if (myCharacteristicUUID === char.uuid) {
+                myCharacteristicUUID = char
             }
-        }
+        });
         myCharacteristic.startNotifications().then(subscribeToChanges)
     } catch (error) {
         console.log('Argh! ' + error)
     }
 }
 
+async function establishConnection() {
+    if (myDevice === undefined) {
+        await getDevice()
+    }
+    await getServer();
+    await getService();
+    await  getChars();
+    await getChar();
+    console.log(myDevice)
+    console.log(myServer)
+    console.log(myService)
+    console.log(myChars)
+    console.log(myCharacteristic)
+}
 
 // subscribe to changes from the meter:
 function subscribeToChanges(characteristic) {
@@ -97,7 +112,7 @@ function handleData(event) {
 
 async function getCurrentValue() {
     try {
-        if (!myCharacteristic) {
+        if (myCharacteristic === undefined) {
             await getChar();
         }
         let value = await myCharacteristic.readValue()
@@ -109,14 +124,15 @@ async function getCurrentValue() {
 }
 
 async function writeVal(newFlag) {
-    if (!myCharacteristic) {
+    if (myCharacteristic === undefined) {
         await getChar();
     }
 
     let commandValue = new Uint8Array(uint8array.encode(newFlag));
 
     try {
-        myCharacteristic.writeValue(commandValue);
+        let some = await myCharacteristic.writeValue(commandValue);
+        console.log(some)
     } catch (error) {
         console.log('Argh! ' + error)
     }
