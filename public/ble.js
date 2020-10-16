@@ -70,7 +70,7 @@ async function getChars() {
 async function getChar() {
     try {
         if (!myChars) {
-            await getChars()
+            myChars = await getChars()
         }
         for (let chars in myChars) {
             if (chars.uuid === myCharacteristicUUID) {
