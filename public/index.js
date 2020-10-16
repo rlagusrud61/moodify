@@ -15,7 +15,7 @@ function loadIn(){
 function updateChoice(){
     colours.style.visibility="hidden";
     slidr.style.visibility="hidden";
-    
+
     if(opt1.checked===true){colours.style.visibility="visible"}
     if(opt2.checked===true){slidr.style.visibility="visible"}
     /*else{}*/
@@ -31,30 +31,31 @@ function closing(){disconModal.style.display = "none";}
 
 // When the user clicks anywhere outside of the modal, close it
 window.onclick = function(event) {
-  if (event.target === disconModal) {
-    modal.style.display = "none";
-  }
-} 
+    if (event.target === disconModal) {
+        modal.style.display = "none";
+    }
+}
 
 // Debugger function for Master Puru <3
 function sendUpdate(pressed) {
-  let manualLight = document.getElementById("ManualLight");
-  let autoLDR = document.getElementById("LightIntensityMode");
-  let text;
-  if (manualLight.checked === true && pressed === 0) {
-      autoLDR.checked = false;
-      text = "110"
+    let manualLight = document.getElementById("ManualLight");
+    let autoLDR = document.getElementById("LightIntensityMode");
+    let text;
+    if (manualLight.checked === true && pressed === 0) {
+        autoLDR.checked = false;
+        text = "110"
 
-  } else if (autoLDR.checked === true) {
-      manualLight.checked = false;
-      text = "001"
-  } else if (autoLDR.checked === false && manualLight.checked === false) {
-      text = "000"
-  }
-  writeVal(text)
-  console.log(text)
+    } else if (autoLDR.checked === true) {
+        manualLight.checked = false;
+        text = "001"
+    } else if (autoLDR.checked === false && manualLight.checked === false) {
+        text = "000"
+    }
+    writeVal(text)
+    console.log(text)
 }
 
 function disconnect(){
-  alert("You are now disconnected. Bai!");
+    bleDisconnect()
+    alert("You are now disconnected. Bai!");
 }

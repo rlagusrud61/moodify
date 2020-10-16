@@ -2,6 +2,7 @@ let filters = [];
 let myDevice;
 let myServer;
 let myService;
+let myChars;
 let myCharacteristic;
 let myServiceUUID = '953f08c4-8c8f-46f4-a48b-07c18dfb3447';
 let flag = '000';
@@ -9,7 +10,7 @@ let myCharacteristicUUID = '58590b45-241a-4230-b020-700ac827a8fb';
 let uint8array = new TextEncoder()
 let string = new TextDecoder()
 
-function getDevice() {
+async function getDevice() {
     let services = [myServiceUUID];
     if (services) {
         filters.push({services: services});
@@ -25,41 +26,63 @@ function getDevice() {
 
     console.log('Requesting Bluetooth Device...');
     console.log('with ' + JSON.stringify(options));
-    navigator.bluetooth.requestDevice(options)
-        .then(device => {
-            console.log('> Name:             ' + device.name);
-            console.log('> Id:               ' + device.id);
-            console.log('> Connected:        ' + device.gatt.connected);
-            // save the device returned so you can disconnect later:
-            myDevice = device;
-            console.log(device);
-            // connect to the device once you find it:
-            return device.gatt.connect();
-        })
-        .then(function(server) {
-            myServer = server;
-            // get the primary service:
-            return server.getPrimaryService(myServiceUUID);
-        })
-        .then(function(service) {
-            myService = service
-            // get the  characteristic:
-            return service.getCharacteristics();
-        })
-        .then(function(characteristics) {
-            // subscribe to the characteristic:
-            for (let c in characteristics) {
-                if (characteristics[c].uuid === myCharacteristic) {
-                    myCharacteristic = characteristics[c];
-                    myCharacteristic.startNotifications()
-                        .then(subscribeToChanges)
-                }
-            }
-        })
-        .catch(error => {
-            console.log('Argh! ' + error);
-        });
+    try {
+        console.log('Requesting Bluetooth Device...');
+        console.log('with ' + JSON.stringify(options));
+        myDevice = await navigator.bluetooth.requestDevice(options);
+        console.log('> Name:             ' + myDevice.name);
+        console.log('> Id:               ' + myDevice.id);
+        console.log('> Connected:        ' + myDevice.gatt.connected);
+    } catch(error)  {
+        console.log('Argh! ' + error);
+    }
 }
+async function getServer() {
+    try {
+        if (!myDevice) {
+            await getDevice()
+        }
+        myServer = await myDevice.gatt.connect();
+    } catch (error) {
+        console.log('Argh! ' + error)
+    }
+}
+async function getService() {
+    try {
+        if (!myServer) {
+            await getServer()
+        }
+        myService = await myServer.getPrimaryService(myServiceUUID);
+    } catch (error) {
+        console.log('Argh! ' + error)
+    }
+}
+async function getChars() {
+    try {
+        if (!myService) {
+            await getService()
+        }
+        myChars = myServer.getCharacteristics()
+    } catch (error) {
+        console.log('Argh! ' + error)
+    }
+}
+async function getChar() {
+    try {
+        if (!myChars) {
+            await getChars()
+        }
+        for (let chars in myChars) {
+            if (chars.uuid === myCharacteristicUUID) {
+                myCharacteristic = chars
+            }
+        }
+        myCharacteristic.startNotifications().then(subscribeToChanges)
+    } catch (error) {
+        console.log('Argh! ' + error)
+    }
+}
+
 
 // subscribe to changes from the meter:
 function subscribeToChanges(characteristic) {
@@ -72,28 +95,35 @@ function handleData(event) {
     console.log(string.decode(buf));
 }
 
-function getCurrentValue() {
-    myCharacteristic.readValue()
-        .then(value => {
-            console.log('Current value is: ' + value);
-            flag = string.decode(value);
-        })
-        .catch(error => {
-            console.log('Error: ', error);
-        })
+async function getCurrentValue() {
+    try {
+        if (!myCharacteristic) {
+            await getChar();
+        }
+        let value = await myCharacteristic.readValue()
+        flag = string.decode(value)
+        console.log(flag)
+    } catch (error) {
+        console.log('Argh! ' + error)
+    }
 }
 
-function writeVal(newFlag) {
-        let commandValue = new Uint8Array(uint8array.encode(newFlag));
-        myCharacteristic.writeValue(commandValue)
-        .catch(error => {
-            console.log(error);
-        })
+async function writeVal(newFlag) {
+    if (!myCharacteristic) {
+        await getChar();
+    }
+
+    let commandValue = new Uint8Array(uint8array.encode(newFlag));
+
+    try {
+        myCharacteristic.writeValue(commandValue);
+    } catch (error) {
+        console.log('Argh! ' + error)
+    }
 }
 
-function disconnect() {
+function bleDisconnect() {
     if (myDevice) {
-        // disconnect:
         myDevice.gatt.disconnect();
     }
 }
