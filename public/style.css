@@ -18,7 +18,7 @@ html, body{
     font-size:50px;
     color:white;
 }
-/* Basically does nothing for some reason, gonna look into it.  
+/* Basically does nothing for some reason, gonna look into it.
   .accordion {
     background-color: #674E7F;
     color: #444;
@@ -198,8 +198,13 @@ input:checked + .slider.round:before {
 .redSquare{background-color:red;}
 .blueSquare{background-color:blue;}
 .greenSquare{background-color:green;}
+.blackSquare{background-color:black;}
 
 #colours{
+    visibility: hidden;
+}
+
+#musicToggle{
     visibility: hidden;
 }
 
