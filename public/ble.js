@@ -9,10 +9,10 @@ let filters = [],
     string = new TextDecoder();
 
 async function getDevice() {
-    // let services = [myServiceUUID];
-    // if (services) {
-    //     filters.push({services: services});
-    // }
+    let services = [myServiceUUID];
+    if (services) {
+        filters.push({services: services});
+    }
 
     let filterName = 'Moodify';
     if (filterName) {
